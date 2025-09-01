@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>사회 봉사 게임</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,51 +11,55 @@
       margin: 0;
       padding: 0;
     }
-    h1 { margin: 20px 0; }
+    h1 {
+      margin: 20px 0;
+    }
     #gameArea {
       margin: 20px auto;
-      max-width: 90%;
-      min-height: 360px;
+      width: 280px;
+      height: 360px;
       display: flex;
       justify-content: center;
       align-items: center;
       border: 2px solid #333;
       border-radius: 10px;
       background: #fff;
-      padding: 10px;
     }
     .person {
-      width: 100%;
-      max-width: 240px;
+      width: 240px;
       padding: 10px;
     }
-    .person h3 { margin: 5px 0; }
+    .person h3 {
+      margin: 5px 0;
+    }
     .person img {
-      width: 100%;
-      max-width: 140px;
-      height: auto;
-      object-fit: contain;
+      width: 140px;
+      height: 140px;
     }
     #resources {
       margin-top: 30px;
       display: flex;
       justify-content: center;
-      gap: 15px;
+      gap: 30px;
       flex-wrap: wrap;
     }
     .resource {
-      width: 80px;
-      height: 80px;
+      width: 100px;
+      height: 100px;
       border: 2px solid #333;
       border-radius: 15px;
       background: #fafafa;
-      font-size: 40px;
-      line-height: 80px;
+      font-size: 50px;
+      line-height: 100px;
       cursor: pointer;
       user-select: none;
+      transition: transform 0.1s;
+    }
+    .resource:active {
+      transform: scale(0.9);
     }
     #score, #timer, #message {
-      font-size: 20px;
+      font-size: 22px;
       margin: 10px;
     }
     #message {
@@ -75,11 +78,11 @@
   <div id="gameArea"></div>
 
   <div id="resources">
-    <div class="resource" data-value="🍞">🍞</div>
-    <div class="resource" data-value="📖">📖</div>
-    <div class="resource" data-value="♿">♿</div>
-    <div class="resource" data-value="🍼">🍼</div>
-    <div class="resource" data-value="💊">💊</div>
+    <div class="resource">🍞</div>
+    <div class="resource">📖</div>
+    <div class="resource">♿</div>
+    <div class="resource">🍼</div>
+    <div class="resource">💊</div>
   </div>
 
   <script>
@@ -96,7 +99,7 @@
       { name: "아이", need: "📖", desc: "공부할 책이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/201/201818.png" },
       { name: "장애인", need: "♿", desc: "이동 보조가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
       { name: "임산부", need: "🍼", desc: "건강한 음식이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
-      { name: "환자", need: "💊", desc: "약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/892/892781.png" }
+      { name: "환자", need: "💊", desc: "약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/6701/6701646.png" }
     ];
 
     let recentPeople = [];
@@ -113,7 +116,7 @@
       currentNeed = randomPerson.need;
 
       gameArea.innerHTML = `
-        <div class="person" data-need="${randomPerson.need}">
+        <div class="person">
           <img src="${randomPerson.img}" alt="${randomPerson.name}">
           <h3>${randomPerson.name}</h3>
           <p>${randomPerson.desc}</p>
@@ -121,27 +124,22 @@
       `;
     }
 
-    function showMessage(text, color) {
-      messageDisplay.textContent = text;
-      messageDisplay.style.color = color;
-      setTimeout(() => messageDisplay.textContent = "", 700);
+    function checkResource(resource) {
+      if (resource.textContent === currentNeed) {
+        score += 10;
+        showMessage("올바르게 도와줬어요! 😊", "green");
+      } else {
+        score -= 5;
+        showMessage("잘못된 자원이예요 😢", "red");
+      }
+      scoreDisplay.textContent = "점수: " + score;
+      setTimeout(showRandomPerson, 800);
     }
 
     const resources = document.querySelectorAll(".resource");
-    resources.forEach(r => {
-      const handleSelect = () => {
-        if (r.dataset.value === currentNeed) {
-          score += 10;
-          showMessage("올바르게 도와줬어요! 😊", "green");
-        } else {
-          score -= 5;
-          showMessage("잘못된 자원이예요 😢", "red");
-        }
-        scoreDisplay.textContent = "점수: " + score;
-        setTimeout(showRandomPerson, 500);
-      };
-      r.addEventListener("click", handleSelect);
-      r.addEventListener("touchstart", handleSelect);
+    resources.forEach(resource => {
+      resource.addEventListener("click", () => checkResource(resource));
+      resource.addEventListener("touchstart", () => checkResource(resource));
     });
 
     const timer = setInterval(() => {
@@ -152,6 +150,12 @@
         endGame();
       }
     }, 1000);
+
+    function showMessage(text, color) {
+      messageDisplay.textContent = text;
+      messageDisplay.style.color = color;
+      setTimeout(() => messageDisplay.textContent = "", 700);
+    }
 
     function endGame() {
       gameArea.innerHTML = `
