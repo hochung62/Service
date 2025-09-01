@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>사회 봉사 게임</title>
+<title>사회 봉사 게임 (선택식)</title>
 <style>
 body { font-family: Arial; text-align:center; background:#f0f8ff; margin:0; padding:0;}
 h1 {margin:20px 0;}
 #score,#timer,#message {font-size:20px; margin:10px;}
 #message {height:26px; font-weight:bold;}
-#gameArea {margin:20px auto; max-width:90%; min-height:360px; display:flex; justify-content:center; align-items:center; border:2px solid #333; border-radius:10px; background:#fff; padding:10px; overflow:hidden;}
+#gameArea {margin:20px auto; max-width:90%; min-height:360px; display:flex; justify-content:center; align-items:center; border:2px solid #333; border-radius:10px; background:#fff; padding:10px;}
 .person {width:100%; max-width:240px; padding:10px;}
 .person img {width:100%; max-width:140px; object-fit:contain;}
-.dropZone {margin-top:10px; border:2px dashed #888; border-radius:10px; height:100px; line-height:100px; font-size:16px; color:#666; background:#f9f9f9; touch-action:none;}
 #resources {margin-top:30px; display:flex; justify-content:center; gap:15px; flex-wrap:wrap;}
-.resource {width:80px; height:80px; border:2px solid #333; border-radius:15px; background:#fafafa; font-size:40px; line-height:80px; cursor:grab; user-select:none; touch-action:none; position:relative;}
+.resource {width:80px; height:80px; border:2px solid #333; border-radius:15px; background:#fafafa; font-size:40px; line-height:80px; cursor:pointer; user-select:none;}
 </style>
 </head>
 <body>
@@ -43,7 +42,7 @@ const people=[
   {name:"아이", need:"📖", desc:"공부할 책이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/201/201818.png"},
   {name:"장애인", need:"♿", desc:"이동 보조가 필요해요", img:"https://cdn-icons-png.flaticon.com/512/1806/1806208.png"},
   {name:"임산부", need:"🍼", desc:"건강한 음식이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/8229/8229514.png"},
-  {name:"환자", need:"💊", desc:"약이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/6701/6701646.png"}
+  {name:"환자", need:"💊", desc:"약이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/892/892781.png"}
 ];
 let recentPeople=[];
 
@@ -58,13 +57,7 @@ function showRandomPerson(){
     <img src="${p.img}" alt="${p.name}">
     <h3>${p.name}</h3>
     <p>${p.desc}</p>
-    <div class="dropZone">여기에 자원을 두세요</div>
   </div>`;
-
-  const dropZone=document.querySelector(".dropZone");
-  dropZone.addEventListener("dragover",e=>e.preventDefault());
-  dropZone.addEventListener("drop", handleDrop);
-  dropZone.addEventListener("touchend", handleDropTouch);
 }
 
 // 점수 메시지
@@ -74,57 +67,26 @@ function showMessage(text,color){
   setTimeout(()=>messageDisplay.textContent="",700);
 }
 
-// 드롭 처리 (데스크탑)
-function handleDrop(e){
-  e.preventDefault();
-  const value=e.dataTransfer.getData("text");
-  updateScore(value);
-}
-
-// 드롭 처리 (모바일)
-function handleDropTouch(e){
-  e.preventDefault();
-  if(draggedItem) updateScore(draggedItem.dataset.value, true);
-}
-
-function updateScore(value, isTouch=false){
-  if(value===currentNeed){ score+=10; showMessage("올바르게 도와줬어요! 😊","green"); }
-  else{ score-=5; showMessage("잘못된 자원이예요 😢","red"); }
-  scoreDisplay.textContent="점수: "+score;
-  if(isTouch){
-    draggedItem.style.position=""; draggedItem.style.left=""; draggedItem.style.top=""; draggedItem.style.zIndex="";
-  }
-  draggedItem=null;
-  setTimeout(showRandomPerson,500);
-}
-
-// 데스크탑 드래그
+// 자원 선택 처리
 const resources=document.querySelectorAll(".resource");
 resources.forEach(r=>{
-  r.addEventListener("dragstart",e=>e.dataTransfer.setData("text", r.dataset.value));
-  r.addEventListener("touchstart", touchStart);
-  r.addEventListener("touchmove", touchMove);
+  r.addEventListener("click",()=>{
+    if(r.dataset.value===currentNeed){
+      score+=10;
+      showMessage("올바르게 도와줬어요! 😊","green");
+    } else {
+      score-=5;
+      showMessage("잘못된 자원이예요 😢","red");
+    }
+    scoreDisplay.textContent="점수: "+score;
+    setTimeout(showRandomPerson,500);
+  });
 });
-
-let draggedItem=null, offsetX=0, offsetY=0;
-function touchStart(e){
-  draggedItem=e.target;
-  const touch=e.touches[0];
-  const rect=draggedItem.getBoundingClientRect();
-  offsetX=touch.clientX-rect.left; offsetY=touch.clientY-rect.top;
-  draggedItem.style.position="absolute";
-  draggedItem.style.zIndex=1000;
-}
-function touchMove(e){
-  if(!draggedItem) return;
-  const touch=e.touches[0];
-  draggedItem.style.left=touch.clientX-offsetX+"px";
-  draggedItem.style.top=touch.clientY-offsetY+"px";
-}
 
 // 타이머
 const timer=setInterval(()=>{
-  timeLeft--; timerDisplay.textContent="남은 시간: "+timeLeft+"초";
+  timeLeft--; 
+  timerDisplay.textContent="남은 시간: "+timeLeft+"초";
   if(timeLeft<=0){ clearInterval(timer); endGame(); }
 },1000);
 
@@ -137,4 +99,3 @@ showRandomPerson();
 </script>
 </body>
 </html>
-
