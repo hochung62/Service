@@ -95,11 +95,11 @@
     let currentNeed = "";
 
     const people = [
-      { name: "노인", need: "🍞", desc: "배고픔 해결이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
+      { name: "노인", need: "🍞", desc: "배고픔을 해결할수 있게 도와줘요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
       { name: "아이", need: "📖", desc: "공부할 책이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/201/201818.png" },
-      { name: "장애인", need: "♿", desc: "이동 보조가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
-      { name: "임산부", need: "🍼", desc: "건강한 음식이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
-      { name: "환자", need: "💊", desc: "약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/6701/6701646.png" }
+      { name: "장애인", need: "♿", desc: "이동하는데 휠체어가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
+      { name: "임산부", need: "🍼", desc: "아이에게 먹일 분유가 필요해요 ", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
+      { name: "환자", need: "💊", desc: "감기 약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/6701/6701646.png" }
     ];
 
     let recentPeople = [];
@@ -130,7 +130,7 @@
         showMessage("올바르게 도와줬어요! 😊", "green");
       } else {
         score -= 5;
-        showMessage("잘못된 자원이예요 😢", "red");
+        showMessage("잘못된 지원이예요 😢", "red");
       }
       scoreDisplay.textContent = "점수: " + score;
       setTimeout(showRandomPerson, 800);
@@ -171,3 +171,4 @@
   </script>
 </body>
 </html>
+
