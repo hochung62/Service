@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>사회 봉사 게임</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,25 +17,29 @@
     }
     #gameArea {
       margin: 20px auto;
-      width: 280px;
-      height: 360px;
+      max-width: 90%;
+      height: auto;
+      min-height: 360px;
       display: flex;
       justify-content: center;
       align-items: center;
       border: 2px solid #333;
       border-radius: 10px;
       background: #fff;
+      padding: 10px;
     }
     .person {
-      width: 240px;
+      width: 100%;
+      max-width: 240px;
       padding: 10px;
     }
     .person h3 {
       margin: 5px 0;
     }
     .person img {
-      width: 140px;
-      height: 140px;
+      width: 100%;
+      max-width: 140px;
+      height: auto;
     }
     .dropZone {
       margin-top: 10px;
@@ -45,27 +50,29 @@
       font-size: 16px;
       color: #666;
       background: #f9f9f9;
+      touch-action: none; /* 터치 드래그 허용 */
     }
     #resources {
       margin-top: 30px;
       display: flex;
       justify-content: center;
-      gap: 30px;
+      gap: 15px;
       flex-wrap: wrap;
     }
     .resource {
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       border: 2px solid #333;
       border-radius: 15px;
       background: #fafafa;
-      font-size: 50px;
-      line-height: 100px;
+      font-size: 40px;
+      line-height: 80px;
       cursor: grab;
       user-select: none;
+      touch-action: none;
     }
     #score, #timer, #message {
-      font-size: 22px;
+      font-size: 20px;
       margin: 10px;
     }
     #message {
@@ -100,16 +107,16 @@
     const messageDisplay = document.getElementById("message");
     let currentNeed = "";
 
-    // 사람 목록
     const people = [
-      { name: "노인", need: "🍞", desc: "배고픔을 해결할 음식이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
+      { name: "노인", need: "🍞", desc: "배고픔 해결이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
       { name: "아이", need: "📖", desc: "공부할 책이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/201/201818.png" },
-      { name: "장애인", need: "♿", desc: "이동에 쓰이는 휠체어가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
-      { name: "임산부", need: "🍼", desc: "아이에게 먹일 분유가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
-      { name: "환자", need: "💊", desc: "감기 약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/6701/6701646.png" }
+      { name: "장애인", need: "♿", desc: "이동 보조가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
+      { name: "임산부", need: "🍼", desc: "건강한 음식이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
+      { name: "환자", need: "💊", desc: "약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/6701/6701646.png" }
     ];
 
-    let recentPeople = []; // 최근 3명 기억
+    let recentPeople = [];
+    let draggedItem = null;
 
     function showRandomPerson() {
       let randomPerson;
@@ -117,7 +124,6 @@
         randomPerson = people[Math.floor(Math.random() * people.length)];
       } while (recentPeople.includes(randomPerson));
 
-      // 최근 3명 업데이트
       recentPeople.push(randomPerson);
       if (recentPeople.length > 3) recentPeople.shift();
 
@@ -128,27 +134,46 @@
           <img src="${randomPerson.img}" alt="${randomPerson.name}">
           <h3>${randomPerson.name}</h3>
           <p>${randomPerson.desc}</p>
-          <div class="dropZone">여기에 알맞은 물품을 두세요</div>
+          <div class="dropZone">여기에 자원을 두세요</div>
         </div>
       `;
 
       const dropZone = document.querySelector(".dropZone");
       dropZone.addEventListener("dragover", dragOver);
       dropZone.addEventListener("drop", dropResource);
+
+      // 터치 이벤트 지원
+      dropZone.addEventListener("touchmove", dragOverTouch);
+      dropZone.addEventListener("touchend", dropResourceTouch);
     }
 
     const resources = document.querySelectorAll(".resource");
-    resources.forEach(resource => resource.addEventListener("dragstart", dragStart));
+    resources.forEach(resource => {
+      resource.addEventListener("dragstart", dragStart);
+      resource.addEventListener("touchstart", dragStartTouch);
+    });
 
-    let draggedItem = null;
     function dragStart(e) {
       draggedItem = e.target;
     }
+
     function dragOver(e) {
       e.preventDefault();
     }
+
     function dropResource(e) {
       e.preventDefault();
+      handleDrop();
+    }
+
+    function showMessage(text, color) {
+      messageDisplay.textContent = text;
+      messageDisplay.style.color = color;
+      setTimeout(() => messageDisplay.textContent = "", 700);
+    }
+
+    function handleDrop() {
+      if (!draggedItem) return;
       if (draggedItem.textContent === currentNeed) {
         score += 10;
         showMessage("올바르게 도와줬어요! 😊", "green");
@@ -157,13 +182,22 @@
         showMessage("잘못된 자원이예요 😢", "red");
       }
       scoreDisplay.textContent = "점수: " + score;
+      draggedItem = null;
       setTimeout(showRandomPerson, 800);
     }
 
-    function showMessage(text, color) {
-      messageDisplay.textContent = text;
-      messageDisplay.style.color = color;
-      setTimeout(() => messageDisplay.textContent = "", 700);
+    // 터치 이벤트 처리
+    function dragStartTouch(e) {
+      draggedItem = e.target;
+    }
+
+    function dragOverTouch(e) {
+      e.preventDefault();
+    }
+
+    function dropResourceTouch(e) {
+      e.preventDefault();
+      handleDrop();
     }
 
     const timer = setInterval(() => {
@@ -185,7 +219,6 @@
       messageDisplay.textContent = "";
     }
 
-    // 게임 시작
     showRandomPerson();
   </script>
 </body>
