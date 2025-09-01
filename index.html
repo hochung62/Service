@@ -19,7 +19,6 @@
       margin: 20px auto;
       max-width: 90%;
       min-height: 360px;
-      height: auto;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -72,6 +71,7 @@
       cursor: grab;
       user-select: none;
       touch-action: none;
+      position: relative;
     }
     #score, #timer, #message {
       font-size: 20px;
@@ -109,6 +109,8 @@
     const messageDisplay = document.getElementById("message");
     let currentNeed = "";
     let draggedItem = null;
+    let offsetX = 0;
+    let offsetY = 0;
 
     const people = [
       { name: "노인", need: "🍞", desc: "배고픔 해결이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
@@ -150,14 +152,30 @@
     resources.forEach(resource => {
       resource.addEventListener("dragstart", dragStart);
       resource.addEventListener("touchstart", dragStartTouch);
+      resource.addEventListener("touchmove", dragMoveTouch);
     });
 
     function dragStart(e) {
       draggedItem = e.target;
     }
+
     function dragStartTouch(e) {
       draggedItem = e.target;
+      const touch = e.touches[0];
+      const rect = draggedItem.getBoundingClientRect();
+      offsetX = touch.clientX - rect.left;
+      offsetY = touch.clientY - rect.top;
+      draggedItem.style.position = "absolute";
+      draggedItem.style.zIndex = 1000;
     }
+
+    function dragMoveTouch(e) {
+      if (!draggedItem) return;
+      const touch = e.touches[0];
+      draggedItem.style.left = touch.clientX - offsetX + "px";
+      draggedItem.style.top = touch.clientY - offsetY + "px";
+    }
+
     function dragOver(e) {
       e.preventDefault();
     }
@@ -169,12 +187,14 @@
 
     function dropResourceTouch(e) {
       e.preventDefault();
-      handleDrop();
+      handleDrop(true);
     }
 
-    function handleDrop() {
+    function handleDrop(isTouch = false) {
       if (!draggedItem) return;
-      if (draggedItem.textContent === currentNeed) {
+
+      const isCorrect = draggedItem.textContent === currentNeed;
+      if (isCorrect) {
         score += 10;
         showMessage("올바르게 도와줬어요! 😊", "green");
       } else {
@@ -182,6 +202,15 @@
         showMessage("잘못된 자원이예요 😢", "red");
       }
       scoreDisplay.textContent = "점수: " + score;
+
+      // 모바일이면 원래 위치로 되돌리기
+      if (isTouch) {
+        draggedItem.style.position = "";
+        draggedItem.style.left = "";
+        draggedItem.style.top = "";
+        draggedItem.style.zIndex = "";
+      }
+
       draggedItem = null;
       setTimeout(showRandomPerson, 800);
     }
