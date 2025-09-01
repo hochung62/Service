@@ -28,7 +28,6 @@
       background: #fff;
       padding: 10px;
       overflow: hidden;
-      position: relative;
     }
     .person {
       width: 100%;
@@ -53,6 +52,7 @@
       font-size: 16px;
       color: #666;
       background: #f9f9f9;
+      touch-action: none;
     }
     #resources {
       margin-top: 30px;
@@ -72,7 +72,6 @@
       cursor: grab;
       user-select: none;
       touch-action: none;
-      position: relative;
     }
     #score, #timer, #message {
       font-size: 20px;
@@ -94,11 +93,11 @@
   <div id="gameArea"></div>
 
   <div id="resources">
-    <div class="resource">🍞</div>
-    <div class="resource">📖</div>
-    <div class="resource">♿</div>
-    <div class="resource">🍼</div>
-    <div class="resource">💊</div>
+    <div class="resource" draggable="true">🍞</div>
+    <div class="resource" draggable="true">📖</div>
+    <div class="resource" draggable="true">♿</div>
+    <div class="resource" draggable="true">🍼</div>
+    <div class="resource" draggable="true">💊</div>
   </div>
 
   <script>
@@ -110,7 +109,6 @@
     const messageDisplay = document.getElementById("message");
     let currentNeed = "";
     let draggedItem = null;
-    let offsetX = 0, offsetY = 0;
 
     const people = [
       { name: "노인", need: "🍞", desc: "배고픔 해결이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
@@ -141,84 +139,37 @@
           <div class="dropZone">여기에 자원을 두세요</div>
         </div>
       `;
+
+      const dropZone = document.querySelector(".dropZone");
+      dropZone.addEventListener("dragover", dragOver);
+      dropZone.addEventListener("drop", dropResource);
+      dropZone.addEventListener("touchend", dropResourceTouch);
     }
 
     const resources = document.querySelectorAll(".resource");
-    resources.forEach(res => {
-      // 데스크탑 드래그
-      res.addEventListener("mousedown", dragStartDesktop);
-      // 모바일 터치 드래그
-      res.addEventListener("touchstart", dragStartTouch, {passive:false});
+    resources.forEach(resource => {
+      resource.addEventListener("dragstart", dragStart);
+      resource.addEventListener("touchstart", dragStartTouch);
     });
 
-    function dragStartDesktop(e) {
+    function dragStart(e) {
       draggedItem = e.target;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
-      document.addEventListener("mousemove", dragMoveDesktop);
-      document.addEventListener("mouseup", dragEndDesktop);
     }
-
-    function dragMoveDesktop(e) {
-      if (!draggedItem) return;
-      draggedItem.style.position = "absolute";
-      draggedItem.style.left = e.pageX - offsetX + "px";
-      draggedItem.style.top = e.pageY - offsetY + "px";
-      draggedItem.style.zIndex = 1000;
-    }
-
-    function dragEndDesktop(e) {
-      if (!draggedItem) return;
-      checkDrop();
-      draggedItem.style.position = "relative";
-      draggedItem.style.left = "0px";
-      draggedItem.style.top = "0px";
-      draggedItem.style.zIndex = "1";
-      draggedItem = null;
-      document.removeEventListener("mousemove", dragMoveDesktop);
-      document.removeEventListener("mouseup", dragEndDesktop);
-    }
-
     function dragStartTouch(e) {
-      e.preventDefault();
       draggedItem = e.target;
-      const touch = e.touches[0];
-      const rect = draggedItem.getBoundingClientRect();
-      offsetX = touch.clientX - rect.left;
-      offsetY = touch.clientY - rect.top;
-      document.addEventListener("touchmove", dragMoveTouch, {passive:false});
-      document.addEventListener("touchend", dragEndTouch);
     }
-
-    function dragMoveTouch(e) {
+    function dragOver(e) {
       e.preventDefault();
-      const touch = e.touches[0];
-      draggedItem.style.position = "absolute";
-      draggedItem.style.left = touch.pageX - offsetX + "px";
-      draggedItem.style.top = touch.pageY - offsetY + "px";
-      draggedItem.style.zIndex = 1000;
     }
 
-    function dragEndTouch(e) {
-      if (!draggedItem) return;
-      checkDrop();
-      draggedItem.style.position = "relative";
-      draggedItem.style.left = "0px";
-      draggedItem.style.top = "0px";
-      draggedItem.style.zIndex = "1";
-      draggedItem = null;
-      document.removeEventListener("touchmove", dragMoveTouch);
-      document.removeEventListener("touchend", dragEndTouch);
+    function dropResource(e) {
+      e.preventDefault();
+      handleDrop();
     }
 
-    function checkDrop() {
-      const dropZone = document.querySelector(".dropZone");
-      const dzRect = dropZone.getBoundingClientRect();
-      const itemRect = draggedItem.getBoundingClientRect();
-      const overlap = !(dzRect.right < itemRect.left || dzRect.left > itemRect.right || dzRect.bottom < itemRect.top || dzRect.top > itemRect.bottom);
-      if (overlap) {
-        handleDrop();
-      }
+    function dropResourceTouch(e) {
+      e.preventDefault();
+      handleDrop();
     }
 
     function handleDrop() {
