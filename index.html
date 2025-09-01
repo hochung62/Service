@@ -1,246 +1,176 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>사회 봉사 게임</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      margin: 20px 0;
-    }
-    #gameArea {
-      margin: 20px auto;
-      max-width: 90%;
-      min-height: 360px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 2px solid #333;
-      border-radius: 10px;
-      background: #fff;
-      padding: 10px;
-      overflow: hidden;
-    }
-    .person {
-      width: 100%;
-      max-width: 240px;
-      padding: 10px;
-    }
-    .person h3 {
-      margin: 5px 0;
-    }
-    .person img {
-      width: 100%;
-      max-width: 140px;
-      height: auto;
-      object-fit: contain;
-    }
-    .dropZone {
-      margin-top: 10px;
-      border: 2px dashed #888;
-      border-radius: 10px;
-      height: 100px;
-      line-height: 100px;
-      font-size: 16px;
-      color: #666;
-      background: #f9f9f9;
-      touch-action: none;
-    }
-    #resources {
-      margin-top: 30px;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    .resource {
-      width: 80px;
-      height: 80px;
-      border: 2px solid #333;
-      border-radius: 15px;
-      background: #fafafa;
-      font-size: 40px;
-      line-height: 80px;
-      cursor: grab;
-      user-select: none;
-      touch-action: none;
-      position: relative;
-    }
-    #score, #timer, #message {
-      font-size: 20px;
-      margin: 10px;
-    }
-    #message {
-      font-weight: bold;
-      color: #0066cc;
-      height: 26px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>사회 봉사 게임</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; background: #f0f8ff; margin:0; padding:0;}
+  h1 {margin:20px 0;}
+  #gameArea {margin:20px auto; max-width:90%; min-height:360px; display:flex; justify-content:center; align-items:center; border:2px solid #333; border-radius:10px; background:#fff; padding:10px; overflow:hidden;}
+  .person {width:100%; max-width:240px; padding:10px;}
+  .person h3 {margin:5px 0;}
+  .person img {width:100%; max-width:140px; height:auto; object-fit:contain;}
+  .dropZone {margin-top:10px; border:2px dashed #888; border-radius:10px; height:100px; line-height:100px; font-size:16px; color:#666; background:#f9f9f9; touch-action:none;}
+  #resources {margin-top:30px; display:flex; justify-content:center; gap:15px; flex-wrap:wrap;}
+  .resource {width:80px; height:80px; border:2px solid #333; border-radius:15px; background:#fafafa; font-size:40px; line-height:80px; cursor:grab; user-select:none; touch-action:none; position:relative;}
+  #score,#timer,#message {font-size:20px; margin:10px;}
+  #message {font-weight:bold; color:#0066cc; height:26px;}
+</style>
 </head>
 <body>
-  <h1>사회 봉사 게임</h1>
-  <div id="score">점수: 0</div>
-  <div id="timer">남은 시간: 30초</div>
-  <div id="message"></div>
+<h1>사회 봉사 게임</h1>
+<div id="score">점수: 0</div>
+<div id="timer">남은 시간: 30초</div>
+<div id="message"></div>
 
-  <div id="gameArea"></div>
+<div id="gameArea"></div>
 
-  <div id="resources">
-    <div class="resource" draggable="true">🍞</div>
-    <div class="resource" draggable="true">📖</div>
-    <div class="resource" draggable="true">♿</div>
-    <div class="resource" draggable="true">🍼</div>
-    <div class="resource" draggable="true">💊</div>
-  </div>
+<div id="resources">
+  <div class="resource" draggable="true">🍞</div>
+  <div class="resource" draggable="true">📖</div>
+  <div class="resource" draggable="true">♿</div>
+  <div class="resource" draggable="true">🍼</div>
+  <div class="resource" draggable="true">💊</div>
+</div>
 
-  <script>
-    let score = 0;
-    let timeLeft = 30;
-    const scoreDisplay = document.getElementById("score");
-    const timerDisplay = document.getElementById("timer");
-    const gameArea = document.getElementById("gameArea");
-    const messageDisplay = document.getElementById("message");
-    let currentNeed = "";
-    let draggedItem = null;
-    let offsetX = 0;
-    let offsetY = 0;
+<script>
+let score = 0;
+let timeLeft = 30;
+const scoreDisplay = document.getElementById("score");
+const timerDisplay = document.getElementById("timer");
+const gameArea = document.getElementById("gameArea");
+const messageDisplay = document.getElementById("message");
+let currentNeed = "";
+let draggedItem = null;
+let offsetX = 0;
+let offsetY = 0;
 
-    const people = [
-      { name: "노인", need: "🍞", desc: "배고픔 해결이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
-      { name: "아이", need: "📖", desc: "공부할 책이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/201/201818.png" },
-      { name: "장애인", need: "♿", desc: "이동 보조가 필요해요", img: "https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
-      { name: "임산부", need: "🍼", desc: "건강한 음식이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
-      { name: "환자", need: "💊", desc: "약이 필요해요", img: "https://cdn-icons-png.flaticon.com/512/892/892781.png" }
-    ];
+// 사람 정보
+const people = [
+  { name:"노인", need:"🍞", desc:"배고픔 해결이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/7703/7703936.png" },
+  { name:"아이", need:"📖", desc:"공부할 책이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/201/201818.png" },
+  { name:"장애인", need:"♿", desc:"이동 보조가 필요해요", img:"https://cdn-icons-png.flaticon.com/512/1806/1806208.png" },
+  { name:"임산부", need:"🍼", desc:"건강한 음식이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/8229/8229514.png" },
+  { name:"환자", need:"💊", desc:"약이 필요해요", img:"https://cdn-icons-png.flaticon.com/512/892/892781.png" }
+];
 
-    let recentPeople = [];
+let recentPeople = [];
 
-    function showRandomPerson() {
-      let randomPerson;
-      do {
-        randomPerson = people[Math.floor(Math.random() * people.length)];
-      } while (recentPeople.includes(randomPerson));
+// 사람 랜덤 출력
+function showRandomPerson() {
+  let randomPerson;
+  do {
+    randomPerson = people[Math.floor(Math.random() * people.length)];
+  } while (recentPeople.includes(randomPerson));
+  recentPeople.push(randomPerson);
+  if(recentPeople.length>3) recentPeople.shift();
+  currentNeed = randomPerson.need;
 
-      recentPeople.push(randomPerson);
-      if (recentPeople.length > 3) recentPeople.shift();
+  gameArea.innerHTML = `
+    <div class="person" data-need="${randomPerson.need}">
+      <img src="${randomPerson.img}" alt="${randomPerson.name}">
+      <h3>${randomPerson.name}</h3>
+      <p>${randomPerson.desc}</p>
+      <div class="dropZone">여기에 자원을 두세요</div>
+    </div>
+  `;
+  const dropZone = document.querySelector(".dropZone");
+  dropZone.addEventListener("dragover", e=>e.preventDefault());
+  dropZone.addEventListener("drop", handleDrop);
+  dropZone.addEventListener("touchend", handleDropTouch);
+}
 
-      currentNeed = randomPerson.need;
+const resources = document.querySelectorAll(".resource");
+resources.forEach(r=>{
+  r.addEventListener("dragstart", e=>draggedItem=e.target);
+  r.addEventListener("touchstart", touchStart);
+  r.addEventListener("touchmove", touchMove);
+});
 
-      gameArea.innerHTML = `
-        <div class="person" data-need="${randomPerson.need}">
-          <img src="${randomPerson.img}" alt="${randomPerson.name}">
-          <h3>${randomPerson.name}</h3>
-          <p>${randomPerson.desc}</p>
-          <div class="dropZone">여기에 자원을 두세요</div>
-        </div>
-      `;
+// 터치 드래그 시작
+function touchStart(e){
+  draggedItem = e.target;
+  const touch = e.touches[0];
+  const rect = draggedItem.getBoundingClientRect();
+  offsetX = touch.clientX - rect.left;
+  offsetY = touch.clientY - rect.top;
+  draggedItem.style.position = "absolute";
+  draggedItem.style.zIndex = 1000;
+}
 
-      const dropZone = document.querySelector(".dropZone");
-      dropZone.addEventListener("dragover", dragOver);
-      dropZone.addEventListener("drop", dropResource);
-      dropZone.addEventListener("touchend", dropResourceTouch);
-    }
+// 터치 드래그 이동
+function touchMove(e){
+  if(!draggedItem) return;
+  const touch = e.touches[0];
+  draggedItem.style.left = touch.clientX - offsetX + "px";
+  draggedItem.style.top = touch.clientY - offsetY + "px";
+}
 
-    const resources = document.querySelectorAll(".resource");
-    resources.forEach(resource => {
-      resource.addEventListener("dragstart", dragStart);
-      resource.addEventListener("touchstart", dragStartTouch);
-      resource.addEventListener("touchmove", dragMoveTouch);
-    });
+// 드롭 처리 (데스크탑)
+function handleDrop(e){
+  e.preventDefault();
+  checkScore();
+}
 
-    function dragStart(e) {
-      draggedItem = e.target;
-    }
+// 드롭 처리 (모바일)
+function handleDropTouch(e){
+  checkScore(true);
+}
 
-    function dragStartTouch(e) {
-      draggedItem = e.target;
-      const touch = e.touches[0];
-      const rect = draggedItem.getBoundingClientRect();
-      offsetX = touch.clientX - rect.left;
-      offsetY = touch.clientY - rect.top;
-      draggedItem.style.position = "absolute";
-      draggedItem.style.zIndex = 1000;
-    }
+// 점수 체크
+function checkScore(isTouch=false){
+  if(!draggedItem) return;
+  const correct = draggedItem.textContent === currentNeed;
+  if(correct){
+    score +=10;
+    showMessage("올바르게 도와줬어요! 😊","green");
+  } else {
+    score -=5;
+    showMessage("잘못된 자원이예요 😢","red");
+  }
+  scoreDisplay.textContent = "점수: "+score;
 
-    function dragMoveTouch(e) {
-      if (!draggedItem) return;
-      const touch = e.touches[0];
-      draggedItem.style.left = touch.clientX - offsetX + "px";
-      draggedItem.style.top = touch.clientY - offsetY + "px";
-    }
+  // 모바일이면 원래 위치로 되돌리기
+  if(isTouch){
+    draggedItem.style.position="";
+    draggedItem.style.left="";
+    draggedItem.style.top="";
+    draggedItem.style.zIndex="";
+  }
 
-    function dragOver(e) {
-      e.preventDefault();
-    }
+  draggedItem = null;
+  setTimeout(showRandomPerson,500);
+}
 
-    function dropResource(e) {
-      e.preventDefault();
-      handleDrop();
-    }
+// 메시지 표시
+function showMessage(text,color){
+  messageDisplay.textContent=text;
+  messageDisplay.style.color=color;
+  setTimeout(()=>messageDisplay.textContent="",700);
+}
 
-    function dropResourceTouch(e) {
-      e.preventDefault();
-      handleDrop(true);
-    }
+// 타이머
+const timer = setInterval(()=>{
+  timeLeft--;
+  timerDisplay.textContent="남은 시간: "+timeLeft+"초";
+  if(timeLeft<=0){
+    clearInterval(timer);
+    endGame();
+  }
+},1000);
 
-    function handleDrop(isTouch = false) {
-      if (!draggedItem) return;
+function endGame(){
+  gameArea.innerHTML=`
+    <div style="padding:20px;">
+      <h2>🎉 게임 종료! 🎉</h2>
+      <p>당신의 점수는 <strong>${score}점</strong> 입니다.</p>
+    </div>
+  `;
+  messageDisplay.textContent="";
+}
 
-      const isCorrect = draggedItem.textContent === currentNeed;
-      if (isCorrect) {
-        score += 10;
-        showMessage("올바르게 도와줬어요! 😊", "green");
-      } else {
-        score -= 5;
-        showMessage("잘못된 자원이예요 😢", "red");
-      }
-      scoreDisplay.textContent = "점수: " + score;
-
-      // 모바일이면 원래 위치로 되돌리기
-      if (isTouch) {
-        draggedItem.style.position = "";
-        draggedItem.style.left = "";
-        draggedItem.style.top = "";
-        draggedItem.style.zIndex = "";
-      }
-
-      draggedItem = null;
-      setTimeout(showRandomPerson, 800);
-    }
-
-    function showMessage(text, color) {
-      messageDisplay.textContent = text;
-      messageDisplay.style.color = color;
-      setTimeout(() => messageDisplay.textContent = "", 700);
-    }
-
-    const timer = setInterval(() => {
-      timeLeft--;
-      timerDisplay.textContent = "남은 시간: " + timeLeft + "초";
-      if (timeLeft <= 0) {
-        clearInterval(timer);
-        endGame();
-      }
-    }, 1000);
-
-    function endGame() {
-      gameArea.innerHTML = `
-        <div style="padding:20px;">
-          <h2>🎉 축하합니다! 🎉</h2>
-          <p>당신의 점수는 <strong>${score}점</strong> 입니다.</p>
-        </div>
-      `;
-      messageDisplay.textContent = "";
-    }
-
-    showRandomPerson();
-  </script>
+showRandomPerson();
+</script>
 </body>
 </html>
